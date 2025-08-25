@@ -3,11 +3,10 @@ mod utils;
 
 use std::ops::DerefMut;
 
-use poise::serenity_prelude as serenity;
-
 struct Data {
     http: crate::utils::http::Client,
     db_pool: deadpool_postgres::Pool,
+    emojis: std::collections::HashMap<String, String>,
 }
 
 type Command = poise::Command<Data, anyhow::Error>;
@@ -24,6 +23,7 @@ async fn main() -> anyhow::Result<()> {
                 Ok(Data {
                     http: crate::utils::http::Client::try_new()?,
                     db_pool: setup_db().await?,
+                    emojis: setup_emojis(ctx).await?,
                 })
             })
         })
@@ -33,8 +33,8 @@ async fn main() -> anyhow::Result<()> {
         })
         .build();
 
-    let intents = serenity::GatewayIntents::non_privileged(); // TODO: review intents
-    let mut client = serenity::Client::builder(&discord_token, intents)
+    let intents = serenity::all::GatewayIntents::non_privileged(); // TODO: review intents
+    let mut client = serenity::all::Client::builder(&discord_token, intents)
         .framework(framework)
         .await?;
 
@@ -80,4 +80,18 @@ async fn setup_db() -> anyhow::Result<deadpool_postgres::Pool> {
         .map_err(|_| anyhow::anyhow!("Failed to migrate database"))?;
 
     Ok(pool)
+}
+
+async fn setup_emojis(
+    ctx: &serenity::all::Context,
+) -> anyhow::Result<std::collections::HashMap<String, String>> {
+    let emojis = ctx
+        .get_application_emojis()
+        .await
+        .map_err(|_| anyhow::anyhow!("Could not fetch emojis"))?;
+    let iter = emojis.into_iter().map(|emoji| {
+        let st = emoji.to_string();
+        (emoji.name, st)
+    });
+    Ok(std::collections::HashMap::from_iter(iter))
 }

@@ -1,13 +1,12 @@
 use crate::utils::{
     macros::{msg_err, reg_err},
-    regions::Region,
     replies::say_text,
 };
 
 #[poise::command(slash_command, guild_only)]
 pub async fn bind(
     ctx: crate::Context<'_>,
-    #[description = "region of your riot account"] region: Region,
+    #[description = "region of your riot account"] region: crate::utils::regions::Region,
     #[description = "username#tag"] riot_id: String,
 ) -> anyhow::Result<()> {
     msg_err!(ctx.defer().await);
