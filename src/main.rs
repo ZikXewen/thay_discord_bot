@@ -6,7 +6,7 @@ use std::ops::DerefMut;
 use poise::serenity_prelude as serenity;
 
 struct Data {
-    http: reqwest::Client,
+    http: crate::utils::http::Client,
     db_pool: deadpool_postgres::Pool,
 }
 
@@ -15,14 +15,16 @@ type Context<'a> = poise::Context<'a, Data, anyhow::Error>;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let token = std::env::var("DISCORD_TOKEN").map_err(|_| anyhow::anyhow!("No DISCORD_TOKEN"))?;
-    let db_pool = setup_db().await?;
-    let http = setup_http()?;
+    let discord_token =
+        std::env::var("DISCORD_TOKEN").map_err(|_| anyhow::anyhow!("No DISCORD_TOKEN"))?;
     let framework = poise::Framework::builder()
         .setup(move |ctx, _, framework| {
             Box::pin(async move {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                Ok(Data { http, db_pool })
+                Ok(Data {
+                    http: crate::utils::http::Client::try_new()?,
+                    db_pool: setup_db().await?,
+                })
             })
         })
         .options(poise::FrameworkOptions {
@@ -32,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
         .build();
 
     let intents = serenity::GatewayIntents::non_privileged(); // TODO: review intents
-    let mut client = serenity::Client::builder(&token, intents)
+    let mut client = serenity::Client::builder(&discord_token, intents)
         .framework(framework)
         .await?;
 
@@ -78,14 +80,4 @@ async fn setup_db() -> anyhow::Result<deadpool_postgres::Pool> {
         .map_err(|_| anyhow::anyhow!("Failed to migrate database"))?;
 
     Ok(pool)
-}
-
-fn setup_http() -> anyhow::Result<reqwest::Client> {
-    let token = std::env::var("RIOT_TOKEN").map_err(|_| anyhow::anyhow!("No RIOT_TOKEN"))?;
-    let mut headers = reqwest::header::HeaderMap::new();
-    headers.insert("X-Riot-Token", token.parse()?);
-    let http = reqwest::Client::builder()
-        .default_headers(headers)
-        .build()?;
-    Ok(http)
 }

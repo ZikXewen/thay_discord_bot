@@ -21,7 +21,7 @@ pub async fn bind(
     let http = ctx.data().http.clone();
     let res = reg_err!(
         ctx,
-        http.get(format!(
+        http.get_with_riot_token(&format!(
             "https://{}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{}",
             region.to_riot_region(),
             riot_id.replace("#", "/")

@@ -31,7 +31,7 @@ pub async fn recent(ctx: crate::Context<'_>) -> anyhow::Result<()> {
     let http = ctx.data().http.clone();
     let res = reg_err!(
         ctx,
-        http.get(format!(
+        http.get_with_riot_token(&format!(
             "https://{}.api.riotgames.com/lol/match/v5/matches/by-puuid/{}/ids?start=0&count=10",
             region.to_league_region(),
             puuid
@@ -47,7 +47,7 @@ pub async fn recent(ctx: crate::Context<'_>) -> anyhow::Result<()> {
     for game in &games {
         let res = reg_err!(
             ctx,
-            http.get(format!(
+            http.get_with_riot_token(&format!(
                 "https://{}.api.riotgames.com/lol/match/v5/matches/{}",
                 region.to_league_region(),
                 game
