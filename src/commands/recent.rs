@@ -6,8 +6,11 @@ use crate::utils::{
 #[poise::command(slash_command, guild_only)]
 pub async fn recent(
     ctx: crate::Context<'_>,
-    #[description = "Must be in range 1-20. Put 1 or leave empty for most recent game."]
+    #[description = "Put 1 or leave empty for the most recent game."]
+    #[min = 1]
+    #[max = 20]
     game: Option<usize>,
+    #[description = "The user whose game to retrieve."] user: Option<serenity::all::UserId>,
 ) -> anyhow::Result<()> {
     msg_err!(ctx.defer().await);
     let game = game.unwrap_or(1);
@@ -16,7 +19,7 @@ pub async fn recent(
         return Ok(());
     }
 
-    let uid = ctx.author().id.get() as i64;
+    let uid = user.unwrap_or(ctx.author().id).get() as i64;
     let manager = reg_err!(
         ctx,
         ctx.data().db_pool.get().await,
@@ -31,7 +34,7 @@ pub async fn recent(
                 &[&uid]
             )
             .await,
-        "Could not find your account. **Please make sure you have bound an account with /bind first**"
+        "Could not find this user's account account. **Please make sure you have bound an account with /bind first**"
     );
     let region: crate::utils::regions::Region = row.get(0);
     let puuid: String = row.get(1);
