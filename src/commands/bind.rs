@@ -45,7 +45,7 @@ pub async fn bind(
             .await,
         "Could not update database"
     );
-    say_text(ctx, "Riot account linked successfully").await;
+    say_text(ctx, format!("Successfully linked to {}", riot_id)).await;
     Ok(())
 }
 

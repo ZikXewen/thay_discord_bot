@@ -12,6 +12,7 @@ services:
       DB_NAME: ${DB_NAME}
       DB_HOST: db
       RIOT_TOKEN: ${RIOT_TOKEN}
+      # ADD_EMOJIS: True
   db:
     image: postgres:17-alpine
     restart: unless-stopped

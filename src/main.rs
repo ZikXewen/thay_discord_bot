@@ -3,6 +3,8 @@ mod utils;
 
 use std::ops::DerefMut;
 
+use base64::Engine;
+
 struct Data {
     http: crate::utils::http::Client,
     db_pool: deadpool_postgres::Pool,
@@ -93,5 +95,31 @@ async fn setup_emojis(
         let st = emoji.to_string();
         (emoji.name, st)
     });
-    Ok(std::collections::HashMap::from_iter(iter))
+    let mut map = std::collections::HashMap::from_iter(iter);
+
+    let add_emojis = std::env::var("ADD_EMOJIS").is_ok();
+    if add_emojis {
+        println!("adding emojis");
+        // NOTE: Fiddlesticks should be named FiddleSticks.png
+        for img in std::fs::read_dir("./assets")? {
+            let path = img?.path();
+            if path.extension().is_none_or(|x| x != "png") {
+                continue;
+            }
+            let name = path.file_stem().unwrap().to_string_lossy();
+            if map.contains_key(name.as_ref()) {
+                continue;
+            }
+            println!("adding {}", name.as_ref());
+            let bytes = std::fs::read(path.to_str().unwrap())?;
+            let b64 = base64::engine::general_purpose::STANDARD.encode(bytes);
+            let b64 = format!("data:image/png;base64,{}", b64);
+            let emoji = ctx.create_application_emoji(&name, &b64).await?;
+            let st = emoji.to_string();
+            println!("added {}", &emoji.name);
+            map.insert(emoji.name, st);
+        }
+    }
+
+    Ok(map)
 }

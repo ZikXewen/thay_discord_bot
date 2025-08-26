@@ -16,5 +16,7 @@ RUN cargo build --release
 
 FROM debian:stable-slim AS runner
 
-COPY --from=builder /thay/target/release/thay /usr/src/thay
-ENTRYPOINT ["/usr/src/thay"]
+WORKDIR /thay
+# COPY ./assets ./assets
+COPY --from=builder /thay/target/release/thay ./thay
+ENTRYPOINT ["./thay"]
