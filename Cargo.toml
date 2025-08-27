@@ -5,7 +5,6 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.99"
-base64 = "0.22.1"
 chrono = "0.4.41"
 deadpool-postgres = "0.14.1"
 poise = "0.6.1"
