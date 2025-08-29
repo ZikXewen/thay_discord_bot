@@ -1,5 +1,5 @@
 {
-  description = "Python flake for running the scripts";
+  description = "Flake for development and running the scripts";
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
   };
