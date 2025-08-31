@@ -1,6 +1,7 @@
 services:
   main:
     build: .
+    image: ghcr.io/zikxewen/thay_discord_bot:master
     depends_on:
       db:
         condition: service_healthy
@@ -13,7 +14,7 @@ services:
       DB_HOST: db
       RIOT_TOKEN: ${RIOT_TOKEN}
   db:
-    image: postgres:17-alpine
+    image: postgres:alpine
     restart: unless-stopped
     ports:
       - "5432:5432"
